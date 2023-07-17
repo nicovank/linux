@@ -3961,6 +3961,8 @@ int cmd_script(int argc, const char **argv)
 			"Enable symbol demangling"),
 	OPT_BOOLEAN(0, "demangle-kernel", &symbol_conf.demangle_kernel,
 			"Enable kernel symbol demangling"),
+	OPT_BOOLEAN(0, "strip-cxx-templates", &symbol_conf.strip_cxx_templates,
+		    "Remove C++ template information from symbol names"),
 	OPT_STRING(0, "time", &script.time_str, "str",
 		   "Time span of interest (start,stop)"),
 	OPT_BOOLEAN(0, "inline", &symbol_conf.inline_name,

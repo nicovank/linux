@@ -316,13 +316,36 @@ static char *demangle_sym(struct dso *dso, int kmodule, const char *elf_name)
 		if (demangled == NULL) {
 			demangled = java_demangle_sym(elf_name, JAVA_DEMANGLE_NORET);
 		}
-	}
-	else if (rust_is_mangled(demangled))
+	} else if (rust_is_mangled(demangled)) {
 		/*
 		    * Input to Rust demangling is the BFD-demangled
 		    * name which it Rust-demangles in place.
 		    */
 		rust_demangle_sym(demangled);
+	} else if (demangled && symbol_conf.strip_cxx_templates) {
+		size_t d = 0, i = 0, j = 0;
+
+		// This is a best-effort template stripping. It may misbehave on
+		// some edge cases, such as < within a string template parameter.
+		while (demangled[j]) {
+			if (demangled[j] == '<' &&
+			    (j < 10 || strncmp("::operator", &demangled[j - 10],
+					       10) != 0) &&
+			    (j < 11 || strncmp("::operator<", &demangled[j - 11],
+					       11) != 0)) {
+				++d;
+			} else if (d > 0 && demangled[j] == '>') {
+				--d;
+			} else if (d == 0) {
+				demangled[i] = demangled[j];
+				++i;
+			}
+
+			++j;
+		}
+
+		demangled[i] = '\0';
+	}
 
 	return demangled;
 }
